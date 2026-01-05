@@ -12,9 +12,10 @@
 
 <div class="header">
   <div class="header-top">
-    <div class="avatar"></div>
-    <h3 id="headerUsername">Player49677961</h3>
-  </div>
+  <img id="headerAvatar" class="avatar" src="https://via.placeholder.com/60" style="object-fit:cover;" />
+  <h3 id="headerUsername">Player49677961</h3>
+</div>
+
   <div class="tabs">
     <div class="tab active" data-tab="info">Informasi</div>
     <div class="tab" data-tab="notif">Notifikasi</div>
@@ -123,56 +124,95 @@
 <footer></footer>
 
 <script>
+  // --- ELEMENT SELECTORS ---
   const preview = document.getElementById('preview');
+  const headerAvatar = document.getElementById('headerAvatar'); // Element baru di header
   const usernameInput = document.getElementById('username');
   const provinsiSelect = document.getElementById('provinsi');
   const headerUsername = document.getElementById('headerUsername');
+  const saveBtn = document.getElementById('saveBtn');
 
+  // Variabel penampung sementara (belum disimpan)
+  let tempPhotoData = null; 
+
+  // 1. FUNGSI PREVIEW FOTO (Hanya merubah tampilan tengah)
   document.getElementById('photo').addEventListener('change', e => {
     const file = e.target.files[0];
     if (!file) return;
+    
     const reader = new FileReader();
     reader.onload = () => {
+      // Ubah preview tengah saja
       preview.src = reader.result;
-      localStorage.setItem('photo', reader.result);
+      // Simpan data ke variabel sementara
+      tempPhotoData = reader.result; 
     };
     reader.readAsDataURL(file);
   });
 
+  // 2. LOAD DATA SAAT WEBSITE DIBUKA
   window.addEventListener('load', () => {
     const savedUsername = localStorage.getItem('username');
     const savedProvinsi = localStorage.getItem('provinsi');
     const savedPhoto = localStorage.getItem('photo');
 
+    // Set Username
     if (savedUsername) {
       usernameInput.value = savedUsername;
       headerUsername.textContent = savedUsername;
     }
-    if (savedProvinsi) provinsiSelect.value = savedProvinsi;
-    if (savedPhoto) preview.src = savedPhoto;
+    
+    // Set Provinsi
+    if (savedProvinsi) {
+      provinsiSelect.value = savedProvinsi;
+    }
+
+    // Set Foto (Header & Preview)
+    if (savedPhoto) {
+      preview.src = savedPhoto;
+      headerAvatar.src = savedPhoto;
+    }
   });
 
-  usernameInput.addEventListener('input', () => {
-    localStorage.setItem('username', usernameInput.value);
-    headerUsername.textContent = usernameInput.value || ' ';
-  });
+  // 3. TOMBOL SIMPAN (Baru simpan ke storage & update Header)
+  saveBtn.addEventListener('click', () => {
+    // Validasi
+    const newUsername = usernameInput.value.trim();
+    const newProvinsi = provinsiSelect.value;
 
-  provinsiSelect.addEventListener('change', () => {
-    localStorage.setItem('provinsi', provinsiSelect.value);
-  });
-
-  document.getElementById('saveBtn').addEventListener('click', () => {
-    if (!usernameInput.value.trim()) {
+    if (!newUsername) {
       alert('Username tidak boleh kosong');
       return;
     }
-    if (provinsiSelect.value === 'Pilih Provinsi') {
+    if (newProvinsi === 'Pilih Provinsi') {
       alert('Silakan pilih provinsi');
       return;
     }
-    alert('Perubahan berhasil disimpan');
-  });
 
+    // --- PROSES MENYIMPAN (Commit Changes) ---
+    
+    // a. Simpan Username & Provinsi
+    localStorage.setItem('username', newUsername);
+    localStorage.setItem('provinsi', newProvinsi);
+
+    // b. Simpan Foto (Jika ada yang baru diupload)
+    if (tempPhotoData) {
+      localStorage.setItem('photo', tempPhotoData);
+      // Update tampilan header avatar sekarang
+      headerAvatar.src = tempPhotoData;
+    } else {
+      // Jika tidak upload baru, pastikan header sync dengan yang lama (opsional safety)
+      const existingPhoto = localStorage.getItem('photo');
+      if(existingPhoto) headerAvatar.src = existingPhoto;
+    }
+
+    // c. Update Teks Header Username
+    headerUsername.textContent = newUsername;
+
+    alert('Perubahan berhasil disimpan dan Profil diperbarui!');
+  });
+  
+  // 4. INTERAKSI TABS (Tetap sama)
   const tabs = document.querySelectorAll('.tab');
   const contents = document.querySelectorAll('.content');
 
@@ -184,84 +224,57 @@
       document.getElementById(tab.dataset.tab).style.display = 'flex';
     });
   });
-// --- LOGIKA NOTIFIKASI SEMENTARA (FIXED) ---
 
+  // --- LOGIKA NOTIFIKASI SEMENTARA (Kode Notifikasi tetap di bawah sini) ---
+  // (Copy paste kode notifikasi yang sudah diperbaiki sebelumnya di sini)
   const simulasiBeliBtn = document.getElementById('simulasiBeli');
   const tambahBarangBtn = document.getElementById('tambahBarang');
-  
-  // Ambil elemen berdasarkan ID baru
   const notifEmpty = document.getElementById('notifEmpty');
   const notifListContainer = document.getElementById('notifListContainer');
-  
   const logList = document.getElementById('logList');
   const barangList = document.getElementById('barangList');
 
-  // Helper: Mendapatkan Jam Sekarang
   function getTime() {
     const now = new Date();
-    return now.toLocaleTimeString('id-ID'); // Format jam Indonesia
+    return now.toLocaleTimeString('id-ID'); 
   }
 
-  // FUNGSI UTAMA: Menambah Notifikasi
   function addNotification(message) {
-    // 1. Sembunyikan kotak pesan "Tidak ada riwayat"
-    if (notifEmpty) {
-        notifEmpty.style.display = 'none';
-    }
-
-    // 2. Munculkan container list notifikasi
+    if (notifEmpty) notifEmpty.style.display = 'none';
     if (notifListContainer) {
         notifListContainer.style.display = 'block';
-        
-        // 3. Buat elemen notifikasi baru
         const div = document.createElement('div');
-        div.className = 'notif-item'; // Pastikan class ini ada di CSS (yang warna putih)
-        div.innerHTML = `
-          <div>${message}</div>
-          <div class="timestamp">${getTime()}</div>
-        `;
-
-        // 4. Masukkan ke paling atas (prepend)
+        div.className = 'notif-item'; 
+        div.innerHTML = `<div>${message}</div><div class="timestamp">${getTime()}</div>`;
         notifListContainer.prepend(div);
     }
   }
 
-  // FUNGSI: Simulasi Beli Barang (Log Pembelian)
   if (simulasiBeliBtn) {
       simulasiBeliBtn.addEventListener('click', () => {
         const items = ['Martabak Manis', 'Terang Bulan Keju', 'Martabak Telur', 'Soda Gembira'];
         const randomItem = items[Math.floor(Math.random() * items.length)];
         
-        // UI Update di Tab Log
         document.getElementById('emptyLogText').style.display = 'none';
         logList.style.display = 'block';
-        
         const li = document.createElement('li');
         li.className = 'list-item';
         li.innerHTML = `<span>Membeli <b>${randomItem}</b></span> <span class="timestamp">${getTime()}</span>`;
         logList.prepend(li);
-
-        // TRIGGER NOTIFIKASI
         addNotification(`Pembelian berhasil: Kamu baru saja membeli <b>${randomItem}</b>.`);
         alert('Barang berhasil dibeli! Cek tab Notifikasi.');
       });
   }
 
-  // FUNGSI: Simulasi Tambah Barang (Barang Jualan)
   if (tambahBarangBtn) {
       tambahBarangBtn.addEventListener('click', () => {
         const barangBaru = 'Menu Spesial ' + Math.floor(Math.random() * 100);
-        
-        // UI Update di Tab Barang
         document.getElementById('emptyBarangText').style.display = 'none';
         barangList.style.display = 'block';
-
         const li = document.createElement('li');
         li.className = 'list-item';
         li.innerHTML = `<span>Menambahkan <b>${barangBaru}</b></span> <span class="timestamp">${getTime()}</span>`;
         barangList.prepend(li);
-
-        // TRIGGER NOTIFIKASI
         addNotification(`Update Stok: Kamu berhasil menambahkan <b>${barangBaru}</b> ke etalase.`);
         alert('Barang berhasil ditambah! Cek tab Notifikasi.');
       });
