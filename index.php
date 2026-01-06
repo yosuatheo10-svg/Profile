@@ -1,33 +1,45 @@
+<?php
+// --- NYALAKAN LAPORAN ERROR ---
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+require 'data/data.php'; 
+?>
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Profil Pengguna</title>
-
-  <!-- CSS TERPISAH -->
+  <title>Profil Pengguna (PHP Separated Data)</title>
   <link rel="stylesheet" href="profile.css">
 </head>
 <body>
 
 <div class="header">
   <div class="header-top">
-  <img id="headerAvatar" class="avatar" src="https://via.placeholder.com/60" style="object-fit:cover;" />
-  <h3 id="headerUsername">Player49677961</h3>
-</div>
+    <img id="headerAvatar" class="avatar" src="https://via.placeholder.com/60" style="object-fit:cover;" alt="Avatar" />
+    <h3 id="headerUsername">Player49677961</h3>
+  </div>
 
   <div class="tabs">
-    <div class="tab active" data-tab="info">Informasi</div>
-    <div class="tab" data-tab="notif">Notifikasi</div>
-    <div class="tab" data-tab="log">Log Pembelian</div>
-    <div class="tab" data-tab="barang">Barang Jualan</div>
+    <?php 
+      // Render Tabs menggunakan data dari $tabs (di data.php)
+      $first = true;
+      foreach($tabs as $key => $label): 
+        $activeClass = $first ? 'active' : ''; 
+        $first = false; 
+    ?>
+      <div class="tab <?= $activeClass ?>" data-tab="<?= $key ?>"><?= $label ?></div>
+    <?php endforeach; ?>
   </div>
 </div>
 
-<div class="content" id="info" style="display:flex;">
+<div class="content active" id="info" style="display:flex;">
   <div class="profile-center">
     <label for="photo">
-      <img id="preview" src="https://via.placeholder.com/100" />
+      <img id="preview" src="https://via.placeholder.com/100" alt="Preview" />
       <div class="camera-icon">📷</div>
     </label>
     <input type="file" id="photo" accept="image/*" />
@@ -44,44 +56,12 @@
     <label>Provinsi</label>
     <select id="provinsi">
       <option>Pilih Provinsi</option>
-      <option>Aceh</option>
-      <option>Sumatera Utara</option>
-      <option>Sumatera Barat</option>
-      <option>Riau</option>
-      <option>Kepulauan Riau</option>
-      <option>Jambi</option>
-      <option>Sumatera Selatan</option>
-      <option>Bangka Belitung</option>
-      <option>Bengkulu</option>
-      <option>Lampung</option>
-      <option>DKI Jakarta</option>
-      <option>Jawa Barat</option>
-      <option>Jawa Tengah</option>
-      <option>DI Yogyakarta</option>
-      <option>Jawa Timur</option>
-      <option>Banten</option>
-      <option>Bali</option>
-      <option>Nusa Tenggara Barat</option>
-      <option>Nusa Tenggara Timur</option>
-      <option>Kalimantan Barat</option>
-      <option>Kalimantan Tengah</option>
-      <option>Kalimantan Selatan</option>
-      <option>Kalimantan Timur</option>
-      <option>Kalimantan Utara</option>
-      <option>Sulawesi Utara</option>
-      <option>Sulawesi Tengah</option>
-      <option>Sulawesi Selatan</option>
-      <option>Sulawesi Tenggara</option>
-      <option>Gorontalo</option>
-      <option>Sulawesi Barat</option>
-      <option>Maluku</option>
-      <option>Maluku Utara</option>
-      <option>Papua</option>
-      <option>Papua Barat</option>
-      <option>Papua Tengah</option>
-      <option>Papua Pegunungan</option>
-      <option>Papua Selatan</option>
-      <option>Papua Barat Daya</option>
+      <?php 
+        // Render Provinsi menggunakan data dari $daftar_provinsi (di data.php)
+        foreach($daftar_provinsi as $prov): 
+      ?>
+        <option value="<?= $prov ?>"><?= $prov ?></option>
+      <?php endforeach; ?>
     </select>
   </div>
 
@@ -90,13 +70,10 @@
 
 <div class="content" id="notif">
   <h2>Riwayat Notifikasi</h2>
-  
   <div class="box" id="notifEmpty">
     Tidak ada riwayat Notifikasi
   </div>
-
-  <div id="notifListContainer" style="display:none; width: 100%;">
-    </div>
+  <div id="notifListContainer" style="display:none; width: 100%;"></div>
 </div>
 
 <div class="content" id="log">
@@ -126,57 +103,50 @@
 <script>
   // --- ELEMENT SELECTORS ---
   const preview = document.getElementById('preview');
-  const headerAvatar = document.getElementById('headerAvatar'); // Element baru di header
+  const headerAvatar = document.getElementById('headerAvatar');
   const usernameInput = document.getElementById('username');
   const provinsiSelect = document.getElementById('provinsi');
   const headerUsername = document.getElementById('headerUsername');
   const saveBtn = document.getElementById('saveBtn');
 
-  // Variabel penampung sementara (belum disimpan)
   let tempPhotoData = null; 
 
-  // 1. FUNGSI PREVIEW FOTO (Hanya merubah tampilan tengah)
+  // 1. FUNGSI PREVIEW FOTO
   document.getElementById('photo').addEventListener('change', e => {
     const file = e.target.files[0];
     if (!file) return;
     
     const reader = new FileReader();
     reader.onload = () => {
-      // Ubah preview tengah saja
       preview.src = reader.result;
-      // Simpan data ke variabel sementara
       tempPhotoData = reader.result; 
     };
     reader.readAsDataURL(file);
   });
 
-  // 2. LOAD DATA SAAT WEBSITE DIBUKA
+  // 2. LOAD DATA
   window.addEventListener('load', () => {
     const savedUsername = localStorage.getItem('username');
     const savedProvinsi = localStorage.getItem('provinsi');
     const savedPhoto = localStorage.getItem('photo');
 
-    // Set Username
     if (savedUsername) {
       usernameInput.value = savedUsername;
       headerUsername.textContent = savedUsername;
     }
     
-    // Set Provinsi
     if (savedProvinsi) {
       provinsiSelect.value = savedProvinsi;
     }
 
-    // Set Foto (Header & Preview)
     if (savedPhoto) {
       preview.src = savedPhoto;
       headerAvatar.src = savedPhoto;
     }
   });
 
-  // 3. TOMBOL SIMPAN (Baru simpan ke storage & update Header)
+  // 3. TOMBOL SIMPAN
   saveBtn.addEventListener('click', () => {
-    // Validasi
     const newUsername = usernameInput.value.trim();
     const newProvinsi = provinsiSelect.value;
 
@@ -189,30 +159,22 @@
       return;
     }
 
-    // --- PROSES MENYIMPAN (Commit Changes) ---
-    
-    // a. Simpan Username & Provinsi
     localStorage.setItem('username', newUsername);
     localStorage.setItem('provinsi', newProvinsi);
 
-    // b. Simpan Foto (Jika ada yang baru diupload)
     if (tempPhotoData) {
       localStorage.setItem('photo', tempPhotoData);
-      // Update tampilan header avatar sekarang
       headerAvatar.src = tempPhotoData;
     } else {
-      // Jika tidak upload baru, pastikan header sync dengan yang lama (opsional safety)
       const existingPhoto = localStorage.getItem('photo');
       if(existingPhoto) headerAvatar.src = existingPhoto;
     }
 
-    // c. Update Teks Header Username
     headerUsername.textContent = newUsername;
-
     alert('Perubahan berhasil disimpan dan Profil diperbarui!');
   });
   
-  // 4. INTERAKSI TABS (Tetap sama)
+  // 4. INTERAKSI TABS
   const tabs = document.querySelectorAll('.tab');
   const contents = document.querySelectorAll('.content');
 
@@ -221,12 +183,14 @@
       tabs.forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
       contents.forEach(c => c.style.display = 'none');
-      document.getElementById(tab.dataset.tab).style.display = 'flex';
+      
+      const targetContent = document.getElementById(tab.dataset.tab);
+      // Pastikan display flex agar layout CSS tidak rusak
+      targetContent.style.display = 'flex';
     });
   });
 
-  // --- LOGIKA NOTIFIKASI SEMENTARA (Kode Notifikasi tetap di bawah sini) ---
-  // (Copy paste kode notifikasi yang sudah diperbaiki sebelumnya di sini)
+  // 5. LOGIKA SIMULASI & NOTIFIKASI
   const simulasiBeliBtn = document.getElementById('simulasiBeli');
   const tambahBarangBtn = document.getElementById('tambahBarang');
   const notifEmpty = document.getElementById('notifEmpty');
@@ -279,7 +243,6 @@
         alert('Barang berhasil ditambah! Cek tab Notifikasi.');
       });
   }
-  
 </script>
 
 </body>
