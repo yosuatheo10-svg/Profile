@@ -4,6 +4,7 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+// Path ini SUDAH BENAR sesuai struktur folder (folder data -> file data.php)
 require 'data/data.php'; 
 ?>
 
@@ -13,7 +14,9 @@ require 'data/data.php';
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Profil Pengguna (PHP Separated Data)</title>
-  <link rel="stylesheet" href="profile.css">
+  
+  <link rel="stylesheet" href="css/profile.css">
+  
 </head>
 <body>
 
@@ -150,7 +153,7 @@ require 'data/data.php';
     const newUsername = usernameInput.value.trim();
     const newProvinsi = provinsiSelect.value;
 
-    // Validasi input (Kode lama tetap ada)
+    // Validasi input
     if (!newUsername) {
       alert('Username tidak boleh kosong');
       return;
@@ -160,12 +163,10 @@ require 'data/data.php';
       return;
     }
 
-    // --- MODIFIKASI DIMULAI DARI SINI ---
-    // Menambahkan konfirmasi dialog (Iya/Tidak)
+    // Konfirmasi dialog
     const isConfirmed = confirm("Apakah Anda yakin ingin menyimpan perubahan profil ini?");
 
     if (isConfirmed) {
-      // JIKA KLIK "OK" (Iya) -> Lakukan proses penyimpanan
       localStorage.setItem('username', newUsername);
       localStorage.setItem('provinsi', newProvinsi);
 
@@ -181,9 +182,6 @@ require 'data/data.php';
       alert('Perubahan berhasil disimpan dan Profil diperbarui!');
       
     } else {
-      // JIKA KLIK "CANCEL" (Tidak) -> Tidak melakukan apa-apa
-      // Opsional: Anda bisa me-reload halaman jika ingin mereset inputan yang sudah terlanjur diketik
-      // location.reload(); 
       console.log("Perubahan dibatalkan oleh pengguna.");
     }
   });
@@ -199,7 +197,6 @@ require 'data/data.php';
       contents.forEach(c => c.style.display = 'none');
       
       const targetContent = document.getElementById(tab.dataset.tab);
-      // Pastikan display flex agar layout CSS tidak rusak
       targetContent.style.display = 'flex';
     });
   });
