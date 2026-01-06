@@ -1,11 +1,10 @@
 <?php
-// --- NYALAKAN LAPORAN ERROR ---
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+session_start();
+require 'data/data.php';
 
-// Path ini SUDAH BENAR sesuai struktur folder (folder data -> file data.php)
-require 'data/data.php'; 
+// Cek apakah user sudah login atau belum
+$isLoggedIn = isset($_SESSION['login']) && $_SESSION['login'] === true;
+$currentUser = $isLoggedIn ? $_SESSION['email'] : "Tamu";
 ?>
 
 <!DOCTYPE html>
@@ -13,22 +12,31 @@ require 'data/data.php';
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Profil Pengguna (PHP Separated Data)</title>
-  
+  <title>Profil Pengguna</title>
   <link rel="stylesheet" href="css/profile.css">
-  
 </head>
 <body>
 
 <div class="header">
   <div class="header-top">
-    <img id="headerAvatar" class="avatar" src="https://via.placeholder.com/60" style="object-fit:cover;" alt="Avatar" />
-    <h3 id="headerUsername">Player49677961</h3>
+    <div class="user-info">
+        <img id="headerAvatar" class="avatar" src="https://via.placeholder.com/60" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'" alt="Avatar" />
+        <h3 id="headerUsername">
+            <?= $isLoggedIn ? $currentUser : 'Player (Belum Login)' ?>
+        </h3>
+    </div>
+    
+    <div>
+        <?php if($isLoggedIn): ?>
+            <a href="data/auth.php?logout=true" class="btn-logout">Logout</a>
+        <?php else: ?>
+            <button class="btn-login" onclick="openAuthModal()">Login / Daftar</button>
+        <?php endif; ?>
+    </div>
   </div>
 
   <div class="tabs">
     <?php 
-      // Render Tabs menggunakan data dari $tabs (di data.php)
       $first = true;
       foreach($tabs as $key => $label): 
         $activeClass = $first ? 'active' : ''; 
@@ -42,7 +50,7 @@ require 'data/data.php';
 <div class="content active" id="info" style="display:flex;">
   <div class="profile-center">
     <label for="photo">
-      <img id="preview" src="https://via.placeholder.com/100" alt="Preview" />
+      <img id="preview" src="https://via.placeholder.com/100" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'" alt="Preview" />
       <div class="camera-icon">📷</div>
     </label>
     <input type="file" id="photo" accept="image/*" />
@@ -51,18 +59,15 @@ require 'data/data.php';
   <h2>Informasi Akun</h2>
 
   <div class="form-group">
-    <label>Username</label>
-    <input type="text" id="username" placeholder="Masukkan username" />
+    <label>Email Pengguna</label>
+    <input type="text" id="username" value="<?= $currentUser ?>" disabled style="background-color: #eee;" />
   </div>
 
   <div class="form-group">
     <label>Provinsi</label>
     <select id="provinsi">
       <option>Pilih Provinsi</option>
-      <?php 
-        // Render Provinsi menggunakan data dari $daftar_provinsi (di data.php)
-        foreach($daftar_provinsi as $prov): 
-      ?>
+      <?php foreach($daftar_provinsi as $prov): ?>
         <option value="<?= $prov ?>"><?= $prov ?></option>
       <?php endforeach; ?>
     </select>
@@ -73,9 +78,7 @@ require 'data/data.php';
 
 <div class="content" id="notif">
   <h2>Riwayat Notifikasi</h2>
-  <div class="box" id="notifEmpty">
-    Tidak ada riwayat Notifikasi
-  </div>
+  <div class="box" id="notifEmpty">Tidak ada riwayat Notifikasi</div>
   <div id="notifListContainer" style="display:none; width: 100%;"></div>
 </div>
 
@@ -103,157 +106,151 @@ require 'data/data.php';
 
 <footer></footer>
 
+<div id="authModal" class="modal">
+  <div class="modal-content">
+    
+    <span class="close-btn" onclick="closeAuthModal()">&times;</span>
+
+    <div class="auth-toggle">
+        <span id="tabLogin" class="active" onclick="switchAuth('login')">MASUK</span> | 
+        <span id="tabRegister" onclick="switchAuth('register')">DAFTAR</span>
+    </div>
+
+    <form id="formLogin" action="data/auth.php" method="POST">
+        <h2 style="text-align:center;">Silakan Masuk</h2>
+        <input type="hidden" name="action" value="login">
+        
+        <label>Email</label>
+        <input type="email" name="email" class="input-line" placeholder="Masukkan email..." required>
+        
+        <label>Password</label>
+        <input type="password" name="password" class="input-line" placeholder="Masukkan password..." required>
+        
+        <button type="submit" class="modal-submit-btn">Masuk Sekarang</button>
+    </form>
+
+    <form id="formRegister" action="data/auth.php" method="POST" style="display:none;">
+        <h2 style="text-align:center;">Buat Akun Baru</h2>
+        <input type="hidden" name="action" value="register">
+        
+        <label>Email Baru</label>
+        <input type="email" name="email" class="input-line" placeholder="Email untuk mendaftar..." required>
+        
+        <label>Password Baru</label>
+        <input type="password" name="password" class="input-line" placeholder="Buat password..." required>
+        
+        <button type="submit" class="modal-submit-btn" style="background-color: #28a745;">Daftar Sekarang</button>
+    </form>
+
+  </div>
+</div>
+
 <script>
-  // --- ELEMENT SELECTORS ---
+  // --- 1. ELEMENT SELECTORS ---
   const preview = document.getElementById('preview');
   const headerAvatar = document.getElementById('headerAvatar');
-  const usernameInput = document.getElementById('username');
   const provinsiSelect = document.getElementById('provinsi');
-  const headerUsername = document.getElementById('headerUsername');
   const saveBtn = document.getElementById('saveBtn');
+  const authModal = document.getElementById('authModal');
 
-  let tempPhotoData = null; 
+  // --- 2. FUNGSI MODAL (Dibuat Global agar onclick pasti jalan) ---
+  window.openAuthModal = function() {
+    if(authModal) {
+        authModal.style.display = 'flex'; // Menggunakan flex agar ke tengah
+    } else {
+        console.error("Error: Modal tidak ditemukan (Check ID HTML)");
+    }
+  }
 
-  // 1. FUNGSI PREVIEW FOTO
-  document.getElementById('photo').addEventListener('change', e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = () => {
-      preview.src = reader.result;
-      tempPhotoData = reader.result; 
-    };
-    reader.readAsDataURL(file);
-  });
+  window.closeAuthModal = function() {
+    if(authModal) authModal.style.display = 'none';
+  }
 
-  // 2. LOAD DATA
+  // Tutup modal jika user klik di area gelap (luar kotak putih)
+  window.onclick = function(event) {
+    if (event.target == authModal) {
+        authModal.style.display = "none";
+    }
+  }
+
+  // --- 3. LOGIKA POPUP OTOMATIS (Jika belum login) ---
+  // Variabel PHP diterjemahkan ke JS
+  const isUserLoggedIn = <?= $isLoggedIn ? 'true' : 'false' ?>;
+  
+  // Opsional: Buka popup otomatis jika belum login
+  // if (!isUserLoggedIn) { setTimeout(openAuthModal, 500); }
+
+  // --- 4. FUNGSI GANTI TAB LOGIN <-> DAFTAR ---
+  window.switchAuth = function(mode) {
+      const formLogin = document.getElementById('formLogin');
+      const formRegister = document.getElementById('formRegister');
+      const tabLogin = document.getElementById('tabLogin');
+      const tabRegister = document.getElementById('tabRegister');
+
+      if (mode === 'login') {
+          formLogin.style.display = 'block';
+          formRegister.style.display = 'none';
+          tabLogin.classList.add('active');
+          tabRegister.classList.remove('active');
+      } else {
+          formLogin.style.display = 'none';
+          formRegister.style.display = 'block';
+          tabLogin.classList.remove('active');
+          tabRegister.classList.add('active');
+      }
+  }
+
+  // --- 5. LOGIKA PREVIEW FOTO & DATA LAINNYA ---
   window.addEventListener('load', () => {
-    const savedUsername = localStorage.getItem('username');
     const savedProvinsi = localStorage.getItem('provinsi');
     const savedPhoto = localStorage.getItem('photo');
-
-    if (savedUsername) {
-      usernameInput.value = savedUsername;
-      headerUsername.textContent = savedUsername;
-    }
-    
-    if (savedProvinsi) {
-      provinsiSelect.value = savedProvinsi;
-    }
-
+    if (savedProvinsi && provinsiSelect) provinsiSelect.value = savedProvinsi;
     if (savedPhoto) {
-      preview.src = savedPhoto;
-      headerAvatar.src = savedPhoto;
+      if(preview) preview.src = savedPhoto;
+      if(headerAvatar) headerAvatar.src = savedPhoto;
     }
   });
 
-  // 3. TOMBOL SIMPAN
-  saveBtn.addEventListener('click', () => {
-    const newUsername = usernameInput.value.trim();
-    const newProvinsi = provinsiSelect.value;
+  if(document.getElementById('photo')) {
+      document.getElementById('photo').addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          if(preview) preview.src = reader.result;
+          if(headerAvatar) headerAvatar.src = reader.result;
+          localStorage.setItem('photo', reader.result); 
+        };
+        reader.readAsDataURL(file);
+      });
+  }
 
-    // Validasi input
-    if (!newUsername) {
-      alert('Username tidak boleh kosong');
-      return;
-    }
-    if (newProvinsi === 'Pilih Provinsi') {
-      alert('Silakan pilih provinsi');
-      return;
-    }
+  if(saveBtn) {
+      saveBtn.addEventListener('click', () => {
+        const newProvinsi = provinsiSelect.value;
+        if (newProvinsi === 'Pilih Provinsi') {
+          alert('Silakan pilih provinsi'); return;
+        }
+        if (confirm("Simpan perubahan profil?")) {
+          localStorage.setItem('provinsi', newProvinsi);
+          alert('Profil berhasil diperbarui!');
+        }
+      });
+  }
 
-    // Konfirmasi dialog
-    const isConfirmed = confirm("Apakah Anda yakin ingin menyimpan perubahan profil ini?");
-
-    if (isConfirmed) {
-      localStorage.setItem('username', newUsername);
-      localStorage.setItem('provinsi', newProvinsi);
-
-      if (tempPhotoData) {
-        localStorage.setItem('photo', tempPhotoData);
-        headerAvatar.src = tempPhotoData;
-      } else {
-        const existingPhoto = localStorage.getItem('photo');
-        if(existingPhoto) headerAvatar.src = existingPhoto;
-      }
-
-      headerUsername.textContent = newUsername;
-      alert('Perubahan berhasil disimpan dan Profil diperbarui!');
-      
-    } else {
-      console.log("Perubahan dibatalkan oleh pengguna.");
-    }
-  });
-  
-  // 4. INTERAKSI TABS
+  // --- 6. TAB NAVIGASI ---
   const tabs = document.querySelectorAll('.tab');
   const contents = document.querySelectorAll('.content');
-
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
       tabs.forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
       contents.forEach(c => c.style.display = 'none');
-      
-      const targetContent = document.getElementById(tab.dataset.tab);
-      targetContent.style.display = 'flex';
+      const targetId = tab.dataset.tab;
+      const targetContent = document.getElementById(targetId);
+      if(targetContent) targetContent.style.display = 'flex';
     });
   });
-
-  // 5. LOGIKA SIMULASI & NOTIFIKASI
-  const simulasiBeliBtn = document.getElementById('simulasiBeli');
-  const tambahBarangBtn = document.getElementById('tambahBarang');
-  const notifEmpty = document.getElementById('notifEmpty');
-  const notifListContainer = document.getElementById('notifListContainer');
-  const logList = document.getElementById('logList');
-  const barangList = document.getElementById('barangList');
-
-  function getTime() {
-    const now = new Date();
-    return now.toLocaleTimeString('id-ID'); 
-  }
-
-  function addNotification(message) {
-    if (notifEmpty) notifEmpty.style.display = 'none';
-    if (notifListContainer) {
-        notifListContainer.style.display = 'block';
-        const div = document.createElement('div');
-        div.className = 'notif-item'; 
-        div.innerHTML = `<div>${message}</div><div class="timestamp">${getTime()}</div>`;
-        notifListContainer.prepend(div);
-    }
-  }
-
-  if (simulasiBeliBtn) {
-      simulasiBeliBtn.addEventListener('click', () => {
-        const items = ['Martabak Manis', 'Terang Bulan Keju', 'Martabak Telur', 'Soda Gembira'];
-        const randomItem = items[Math.floor(Math.random() * items.length)];
-        
-        document.getElementById('emptyLogText').style.display = 'none';
-        logList.style.display = 'block';
-        const li = document.createElement('li');
-        li.className = 'list-item';
-        li.innerHTML = `<span>Membeli <b>${randomItem}</b></span> <span class="timestamp">${getTime()}</span>`;
-        logList.prepend(li);
-        addNotification(`Pembelian berhasil: Kamu baru saja membeli <b>${randomItem}</b>.`);
-        alert('Barang berhasil dibeli! Cek tab Notifikasi.');
-      });
-  }
-
-  if (tambahBarangBtn) {
-      tambahBarangBtn.addEventListener('click', () => {
-        const barangBaru = 'Menu Spesial ' + Math.floor(Math.random() * 100);
-        document.getElementById('emptyBarangText').style.display = 'none';
-        barangList.style.display = 'block';
-        const li = document.createElement('li');
-        li.className = 'list-item';
-        li.innerHTML = `<span>Menambahkan <b>${barangBaru}</b></span> <span class="timestamp">${getTime()}</span>`;
-        barangList.prepend(li);
-        addNotification(`Update Stok: Kamu berhasil menambahkan <b>${barangBaru}</b> ke etalase.`);
-        alert('Barang berhasil ditambah! Cek tab Notifikasi.');
-      });
-  }
 </script>
 
 </body>

@@ -1,3 +1,6 @@
+/* =========================================
+   1. GLOBAL STYLES
+   ========================================= */
 body {
   margin: 0;
   font-family: Arial, sans-serif;
@@ -7,25 +10,75 @@ body {
   flex-direction: column;
 }
 
+/* =========================================
+   2. HEADER & NAVIGATION
+   ========================================= */
 .header {
   background: #ffffff;
   border-bottom: 1px solid #ddd;
+  /* Tambahan agar tombol bisa diklik dan layer header di atas konten lain: */
+  position: relative;
+  z-index: 100;
 }
 
 .header-top {
   display: flex;
   align-items: center;
+  justify-content: space-between; /* PENTING: Agar Nama di Kiri, Tombol Login di Kanan */
   padding: 20px 40px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
 }
 
 .avatar {
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: #0f5a4a;
+  background: #0f5a4a; /* Warna default jika gambar gagal load */
   margin-right: 15px;
+  object-fit: cover;
 }
 
+/* Style Tombol Login (Hijau) & Logout (Merah) */
+.btn-login {
+  background-color: #2ecc71;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.3s;
+  display: inline-block; /* Menjamin area klik solid */
+}
+
+.btn-login:hover {
+  background-color: #27ae60;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.btn-logout {
+  background-color: transparent;
+  color: #e74c3c;
+  border: 1px solid #e74c3c;
+  padding: 8px 15px;
+  border-radius: 5px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+.btn-logout:hover {
+  background-color: #e74c3c;
+  color: white;
+}
+
+/* Tabs Navigasi */
 .tabs {
   display: flex;
   gap: 30px;
@@ -46,6 +99,9 @@ body {
   font-weight: bold;
 }
 
+/* =========================================
+   3. CONTENT AREA
+   ========================================= */
 .content {
   background: #ffffff;
   margin: 30px auto;
@@ -54,14 +110,17 @@ body {
   flex: 1;
   padding: 30px;
   border-radius: 6px;
-  display: none;
+  display: none; /* Default sembunyi */
   flex-direction: column;
 }
 
 .content.active {
-  display: flex;
+  display: flex; /* Muncul jika aktif */
 }
 
+/* =========================================
+   4. PROFILE & FORMS
+   ========================================= */
 .profile-center {
   position: relative;
   display: inline-block;
@@ -107,6 +166,7 @@ input, select {
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
+  box-sizing: border-box; /* Agar padding tidak merusak lebar element */
 }
 
 input[type=file] {
@@ -125,6 +185,9 @@ input[type=file] {
   cursor: pointer;
 }
 
+/* =========================================
+   5. NOTIFICATION & LOGS LISTS
+   ========================================= */
 .box {
   border: 1px solid #e0e0e0;
   border-radius: 6px;
@@ -138,7 +201,6 @@ input[type=file] {
   font-size: 16px;
 }
 
-/* Style tambahan untuk notifikasi dan list */
 .action-btn {
   padding: 10px 20px;
   background: #2ecc71;
@@ -164,13 +226,13 @@ input[type=file] {
 }
 
 .notif-item {
-  background: #ffffff;  /* Warna Putih */
-  border-left: 5px solid #2196f3; /* Garis Biru */
+  background: #ffffff;
+  border-left: 5px solid #2196f3;
   padding: 15px;
   margin-bottom: 10px;
   border-radius: 4px;
   color: #333;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Bayangan agar terlihat timbul */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   animation: slideIn 0.3s ease;
 }
 
@@ -182,4 +244,110 @@ input[type=file] {
 @keyframes slideIn {
   from { opacity: 0; transform: translateX(-10px); }
   to { opacity: 1; transform: translateX(0); }
+}
+
+footer {
+    padding: 20px;
+}
+
+/* =========================================
+   6. MODAL POPUP LOGIN / REGISTER (PENTING)
+   ========================================= */
+.modal {
+  display: none; /* Default sembunyi, JS akan mengubahnya jadi Flex */
+  position: fixed; 
+  z-index: 9999; /* Paling atas menutupi semua */
+  left: 0; 
+  top: 0;
+  width: 100%; 
+  height: 100%; 
+  background-color: rgba(0,0,0,0.8); /* Background Gelap Transparan */
+  align-items: center; 
+  justify-content: center;
+}
+
+.modal-content {
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 8px;
+  width: 90%; 
+  max-width: 400px;
+  text-align: left;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  position: relative; /* Untuk posisi tombol close absolute */
+}
+
+/* Tombol Close X di Popup */
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  color: #aaa;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.close-btn:hover {
+  color: #000;
+}
+
+/* Switch Login | Daftar */
+.auth-toggle {
+  text-align: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.auth-toggle span {
+  cursor: pointer;
+  font-weight: bold;
+  color: #ccc;
+  margin: 0 15px;
+  font-size: 1.1em;
+  transition: 0.3s;
+}
+
+.auth-toggle span:hover {
+  color: #666;
+}
+
+.auth-toggle span.active {
+  color: #007bff;
+  border-bottom: 3px solid #007bff;
+  padding-bottom: 5px;
+}
+
+/* Input Form di dalam Modal */
+.input-line {
+  width: 100%;
+  border: none;
+  border-bottom: 2px solid #2ecc71;
+  border-radius: 0;
+  padding: 10px 5px;
+  margin-bottom: 20px;
+  background: transparent;
+  outline: none;
+}
+
+.input-line:focus {
+  border-bottom: 2px solid #27ae60;
+}
+
+.modal-submit-btn {
+  background-color: #007bff;
+  color: white;
+  padding: 12px;
+  width: 100%;
+  border: none;
+  border-radius: 25px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 10px;
+  font-size: 16px;
+}
+
+.modal-submit-btn:hover {
+  opacity: 0.9;
 }
