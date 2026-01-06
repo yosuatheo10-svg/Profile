@@ -150,6 +150,7 @@ require 'data/data.php';
     const newUsername = usernameInput.value.trim();
     const newProvinsi = provinsiSelect.value;
 
+    // Validasi input (Kode lama tetap ada)
     if (!newUsername) {
       alert('Username tidak boleh kosong');
       return;
@@ -159,19 +160,32 @@ require 'data/data.php';
       return;
     }
 
-    localStorage.setItem('username', newUsername);
-    localStorage.setItem('provinsi', newProvinsi);
+    // --- MODIFIKASI DIMULAI DARI SINI ---
+    // Menambahkan konfirmasi dialog (Iya/Tidak)
+    const isConfirmed = confirm("Apakah Anda yakin ingin menyimpan perubahan profil ini?");
 
-    if (tempPhotoData) {
-      localStorage.setItem('photo', tempPhotoData);
-      headerAvatar.src = tempPhotoData;
+    if (isConfirmed) {
+      // JIKA KLIK "OK" (Iya) -> Lakukan proses penyimpanan
+      localStorage.setItem('username', newUsername);
+      localStorage.setItem('provinsi', newProvinsi);
+
+      if (tempPhotoData) {
+        localStorage.setItem('photo', tempPhotoData);
+        headerAvatar.src = tempPhotoData;
+      } else {
+        const existingPhoto = localStorage.getItem('photo');
+        if(existingPhoto) headerAvatar.src = existingPhoto;
+      }
+
+      headerUsername.textContent = newUsername;
+      alert('Perubahan berhasil disimpan dan Profil diperbarui!');
+      
     } else {
-      const existingPhoto = localStorage.getItem('photo');
-      if(existingPhoto) headerAvatar.src = existingPhoto;
+      // JIKA KLIK "CANCEL" (Tidak) -> Tidak melakukan apa-apa
+      // Opsional: Anda bisa me-reload halaman jika ingin mereset inputan yang sudah terlanjur diketik
+      // location.reload(); 
+      console.log("Perubahan dibatalkan oleh pengguna.");
     }
-
-    headerUsername.textContent = newUsername;
-    alert('Perubahan berhasil disimpan dan Profil diperbarui!');
   });
   
   // 4. INTERAKSI TABS
